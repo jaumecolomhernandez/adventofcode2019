@@ -83,8 +83,6 @@ def edge_list(input_file):
     return links
 
 
-
-
 if __name__ == "__main__":
     # In the previous challenge I represented the galaxy as a tree.
     # For this problem it is necessary to represent it as a graph.
@@ -94,7 +92,7 @@ if __name__ == "__main__":
     input_file = open("input", "r")
     edges = edge_list(input_file)
 
-    g = Graph(edges)    # Create graph
+    g = Graph(edges) # Create graph
 
     #g.print()
     dist = g.djikstra(g.matchs['YOU']) # Run djikstra
