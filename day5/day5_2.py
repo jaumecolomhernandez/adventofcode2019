@@ -2,94 +2,106 @@
 import time
 from enum import Enum
 
+
 class ops(Enum):
     SUM = 1
     MULTIPLICATION = 2
     INPUT = 3
     OUTPUT = 4
-    JUMP_IF_TRUE = 5
-    JUMP_IF_FALSE = 6
+    JUMP_TRUE = 5
+    JUMP_FALSE = 6
     LESS_THAN = 7
     EQUALS = 8
     RESET = 99
 
-
-def convert(action):
-    """ Returns action and modes """
+class IntCode:
+    """ Implementation of the IntCode computer """
+    def __init__(self, numbers, inputs):
+        self.ins = numbers
+        self.debug = False
+        self.index = 0
+        self.inputs = inputs
+        self.finished = False
+        
+    def run_tests(self):
+        pass
     
-    action = [int(n)for n in str(action)]
+    def convert(self, action):
+        """ Converts instruction to operation and modes """
+        action = [int(n)for n in str(action)]
+        while len(action)!=5:
+            action.insert(0,0)
+        # Get values array
+        values = [10*action[3]+action[4],0,0,0]
+        values[1] = action[2] 
+        values[2] = action[1] 
+        values[3] = action[0]
 
-    while len(action)!=5:
-        action.insert(0,0)
+        return ops(values[0]), values[1:]
     
-    # Get values array
-    values = [10*action[3]+action[4],0,0,0]
-    values[1] = action[2] 
-    values[2] = action[1] 
-    values[3] = action[0]
+    def run_op(self):
+        action, modes = self.convert(self.ins[self.index])
+    
+        # Compute parameters
+        if action not in [ops.INPUT, ops.OUTPUT, ops.RESET]:
+            first, second = self.get_vals(modes)
 
-    time.sleep(0.05)
-    #print(values)
-
-    return ops(values[0]), values[1:]
-
-def get_values(i,modes,nvalues):
-    """ Gets values """ # UNUSED
-    values = [0]*nvalues
-    for j in range(nvalues-1):
-        values[j] = numbers[i+1+j] if modes[j] else numbers[numbers[i+1+j]]
-    values[nvalues-1] = numbers[i+nvalues] 
- 
-    return values
-
-def compute(numbers):
-    """Runs the whole program"""
-    i = 0
-    run = True
-    while(run):
-        # Get action and modes of the call
-        action, modes = convert(numbers[i])
-        print(action, modes)
         # Execute actions
         if action is ops.SUM:     # 1 Sum
-            first = numbers[i+1] if modes[0] else numbers[numbers[i+1]]
-            second = numbers[i+2] if modes[1] else numbers[numbers[i+2]]
-            numbers[numbers[i+3]] = first + second
-            i = i + 4
+            print("SUM")
+            self.ins[self.ins[self.index+3]] = first + second
+            self.index += 4
+
         elif action is ops.MULTIPLICATION:   # 2 Multiply
-            first = numbers[i+1] if modes[0] else numbers[numbers[i+1]]
-            second = numbers[i+2] if modes[1] else numbers[numbers[i+2]]
-            numbers[numbers[i+3]] = first * second
-            i = i + 4
+            print("MULTIPLICATION")
+            self.ins[self.ins[self.index+3]] = first * second
+            self.index += 4
+
         elif action is ops.INPUT:   # 3 Input
-            inp = input("WRITE ID => ")
-            numbers[numbers[i+1]] = int(inp)
-            i = i + 2
+            print("INPUT")
+            self.ins[self.ins[self.index+1]] = int(self.inputs.pop(0))
+            self.index += 2
+
         elif action is ops.OUTPUT:   # 4 print
-            print(numbers[numbers[i+1]])
-            i = i + 2
-        elif action is ops.JUMP_IF_TRUE:   # 5 (!=0)
-            
-            first = numbers[i+1] if modes[0] else numbers[numbers[i+1]]
-            second = numbers[i+2] if modes[1] else numbers[numbers[i+2]]
-            i = second if first != 0 else (i + 3)
-        elif action is ops.JUMP_IF_FALSE:   # 6 (==0)
-            first = numbers[i+1] if modes[0] else numbers[numbers[i+1]]
-            second = numbers[i+2] if modes[1] else numbers[numbers[i+2]]
-            i = second if first == 0 else (i + 3)
-        elif action is ops.LESS_THAN:  
-            first = numbers[i+1] if modes[0] else numbers[numbers[i+1]]
-            second = numbers[i+2] if modes[1] else numbers[numbers[i+2]]
-            numbers[numbers[i+3]] = 1 if first < second else 0
-            i = i + 4
-        elif action is ops.EQUALS:   
-            first = numbers[i+1] if modes[0] else numbers[numbers[i+1]]
-            second = numbers[i+2] if modes[1] else numbers[numbers[i+2]]
-            numbers[numbers[i+3]] = 1 if first == second else 0
-            i = i + 4
+            print("OUTPUT")
+            print(self.ins[self.ins[self.index+1]])
+            self.index += 2
+
+        elif action is ops.JUMP_TRUE:   # 5 (!=0)
+            print("JUMP IF TRUE")
+            self.index = second if first != 0 else (self.index + 3)
+
+        elif action is ops.JUMP_FALSE:   # 6 (==0)
+            print("JUMP IF FALSE")
+            self.index = second if first == 0 else (self.index + 3)
+
+        elif action is ops.LESS_THAN:
+            print("LESS THAN")  
+            self.ins[self.ins[self.index+3]] = 1 if first < second else 0
+            self.index += 4
+
+        elif action is ops.EQUALS:
+            print("EQUALS")   
+            self.ins[self.ins[self.index+3]] = 1 if first == second else 0
+            self.index += 4
+
         elif action is ops.RESET:
-            run = False
-            i = i + 1
+            self.finished = True
+            self.index += 1
+    
+    def get_vals(self, modes):
+        " Only used when two parameters needed "
+        first = self.ins[self.index+1] if modes[0] else self.ins[self.ins[self.index+1]]
+        second = self.ins[self.index+2] if modes[1] else self.ins[self.ins[self.index+2]]
+        return first, second
+
+    def compute(self):
+        """ Runs the whole program """
+
+        while not self.finished:
+            self.run_op()
+            
+            
   
 
 if __name__ == "__main__":
@@ -97,5 +109,8 @@ if __name__ == "__main__":
 
     numbers = [int(num) for num in input_file.split(',')]
 
-    compute(numbers)
+    computer = IntCode(numbers,[80,0])
+
+    computer.compute()
+
     
