@@ -1,0 +1,16 @@
+import curses
+import time
+
+mywindow = curses.initscr()
+
+z = 10
+while z > 1:
+    matrix = updateMatrix(matrix)
+    mywindow.addstr(0,0, getMarixString(matrix))
+    mywindow.refresh()
+    z -= 1
+    time.sleep(0.4)
+
+curses.endwin()
+
+quit()
