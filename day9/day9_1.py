@@ -215,7 +215,7 @@ if __name__ == "__main__":
 
     numbers = [int(num) for num in input_file.split(',')]
     #numbers = [3,9,8,9,10,9,4,9,99,-1,8]
-    computer = IntCode(numbers,[2])
+    computer = IntCode(numbers,[1])
     computer.compute()    
     print(computer.outputs)
     run_tests()
